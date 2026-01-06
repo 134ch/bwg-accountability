@@ -1,0 +1,23 @@
+{
+    "name": "BWG Daily Accountability",
+    "short_name": "BWG Tasks",
+    "description": "Daily task accountability app for 60-day goals",
+    "start_url": "/bwg-accountability/",
+    "scope": "/bwg-accountability/",
+    "display": "standalone",
+    "background_color": "#0a0a0f",
+    "theme_color": "#f97316",
+    "orientation": "portrait",
+    "icons": [
+        {
+            "src": "favicon.svg",
+            "sizes": "any",
+            "type": "image/svg+xml",
+            "purpose": "any maskable"
+        }
+    ],
+    "categories": [
+        "productivity",
+        "lifestyle"
+    ]
+}

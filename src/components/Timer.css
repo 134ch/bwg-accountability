@@ -1,0 +1,257 @@
+/* Timer Component Styles */
+
+.timer-container {
+    padding: var(--space-md);
+    background: var(--color-bg-card);
+    border-radius: var(--radius-md);
+    border: 1px solid var(--color-border);
+    transition: all var(--transition-normal);
+}
+
+.timer-container.timer-running {
+    border-color: var(--color-accent-primary);
+    box-shadow: 0 0 20px rgba(249, 115, 22, 0.15);
+}
+
+.timer-container.timer-warning {
+    border-color: #ef4444;
+    background: rgba(239, 68, 68, 0.1);
+    animation: pulse-warning 1s ease-in-out infinite;
+}
+
+.timer-container.timer-expired {
+    border-color: #ef4444;
+    background: rgba(239, 68, 68, 0.15);
+}
+
+.timer-container.timer-paused {
+    border-color: var(--color-warning);
+    opacity: 0.8;
+}
+
+@keyframes pulse-warning {
+
+    0%,
+    100% {
+        box-shadow: 0 0 20px rgba(239, 68, 68, 0.2);
+    }
+
+    50% {
+        box-shadow: 0 0 30px rgba(239, 68, 68, 0.4);
+    }
+}
+
+/* Timer Display */
+.timer-display-wrapper {
+    text-align: center;
+    margin-bottom: var(--space-sm);
+}
+
+.timer-main-display {
+    font-family: var(--font-mono);
+    font-size: 2rem;
+    font-weight: 700;
+    color: var(--color-text-primary);
+    line-height: 1;
+}
+
+.timer-warning .timer-main-display,
+.timer-expired .timer-main-display {
+    color: #ef4444;
+}
+
+.overtime-indicator {
+    color: #ef4444;
+}
+
+.timer-elapsed {
+    font-size: 0.75rem;
+    color: var(--color-text-muted);
+    margin-top: var(--space-xs);
+}
+
+.timer-warning-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--space-xs);
+    padding: var(--space-xs) var(--space-sm);
+    background: rgba(239, 68, 68, 0.2);
+    border-radius: var(--radius-full);
+    color: #ef4444;
+    font-size: 0.75rem;
+    font-weight: 500;
+    margin-top: var(--space-sm);
+    animation: pulse 1s ease-in-out infinite;
+}
+
+/* Progress Bar */
+.timer-progress-bar {
+    height: 4px;
+    background: var(--color-bg-secondary);
+    border-radius: var(--radius-full);
+    overflow: hidden;
+    margin-bottom: var(--space-md);
+}
+
+.timer-progress-fill {
+    height: 100%;
+    background: var(--color-accent-gradient);
+    border-radius: var(--radius-full);
+    transition: width 1s linear;
+}
+
+.timer-progress-fill.warning {
+    background: linear-gradient(135deg, #f97316 0%, #ef4444 100%);
+}
+
+.timer-progress-fill.expired {
+    background: #ef4444;
+    width: 100% !important;
+}
+
+/* Controls */
+.timer-controls {
+    display: flex;
+    gap: var(--space-sm);
+    justify-content: center;
+    margin-bottom: var(--space-sm);
+}
+
+.timer-btn {
+    display: flex;
+    align-items: center;
+    gap: var(--space-xs);
+    padding: var(--space-sm) var(--space-md);
+    border: none;
+    border-radius: var(--radius-md);
+    font-family: inherit;
+    font-size: 0.875rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all var(--transition-fast);
+}
+
+.timer-btn-start {
+    background: var(--color-success);
+    color: white;
+}
+
+.timer-btn-start:hover {
+    background: #16a34a;
+    transform: translateY(-1px);
+}
+
+.timer-btn-pause {
+    background: var(--color-warning);
+    color: white;
+}
+
+.timer-btn-pause:hover {
+    background: #ea580c;
+}
+
+.timer-btn-stop {
+    background: var(--color-bg-secondary);
+    color: var(--color-text-secondary);
+    border: 1px solid var(--color-border);
+}
+
+.timer-btn-stop:hover {
+    background: var(--color-bg-card-hover);
+    color: var(--color-text-primary);
+}
+
+/* Timer Info */
+.timer-info {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: var(--space-xs);
+    font-size: 0.75rem;
+    color: var(--color-text-muted);
+}
+
+/* Compact Timer */
+.compact-timer {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--space-xs);
+}
+
+.compact-timer-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--space-xs);
+    padding: var(--space-xs) var(--space-sm);
+    background: var(--color-bg-secondary);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-sm);
+    color: var(--color-text-secondary);
+    font-family: inherit;
+    font-size: 0.75rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all var(--transition-fast);
+}
+
+.compact-timer-btn:hover:not(:disabled) {
+    background: var(--color-bg-card-hover);
+    border-color: var(--color-border-hover);
+    color: var(--color-text-primary);
+}
+
+.compact-timer-btn:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+.compact-timer-time {
+    font-family: var(--font-mono);
+    font-weight: 600;
+}
+
+.compact-timer-active .compact-timer-btn {
+    background: var(--color-warning-light);
+    border-color: var(--color-border-warning);
+    color: var(--color-warning);
+}
+
+.compact-timer-warning .compact-timer-btn {
+    background: rgba(239, 68, 68, 0.15);
+    border-color: rgba(239, 68, 68, 0.4);
+    color: #ef4444;
+    animation: pulse 1s ease-in-out infinite;
+}
+
+.compact-timer-expired .compact-timer-btn {
+    background: rgba(239, 68, 68, 0.2);
+    border-color: #ef4444;
+    color: #ef4444;
+}
+
+.compact-timer-paused .compact-timer-btn {
+    background: rgba(249, 115, 22, 0.1);
+    border-color: rgba(249, 115, 22, 0.3);
+    color: var(--color-warning);
+}
+
+.compact-timer-stop {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 24px;
+    height: 24px;
+    padding: 0;
+    background: var(--color-bg-secondary);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-sm);
+    color: var(--color-text-muted);
+    cursor: pointer;
+    transition: all var(--transition-fast);
+}
+
+.compact-timer-stop:hover {
+    background: rgba(239, 68, 68, 0.1);
+    border-color: rgba(239, 68, 68, 0.3);
+    color: #ef4444;
+}

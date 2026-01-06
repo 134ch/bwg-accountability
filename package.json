@@ -1,0 +1,24 @@
+{
+  "name": "bwg-accountability",
+  "private": true,
+  "version": "1.0.0",
+  "type": "module",
+  "homepage": "https://134ch.github.io/bwg-accountability",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview",
+    "predeploy": "npm run build",
+    "deploy": "gh-pages -d dist"
+  },
+  "dependencies": {
+    "lucide-react": "^0.469.0",
+    "react": "^19.2.3",
+    "react-dom": "^19.2.3"
+  },
+  "devDependencies": {
+    "@vitejs/plugin-react": "^4.7.0",
+    "gh-pages": "^6.3.0",
+    "vite": "^6.4.1"
+  }
+}
