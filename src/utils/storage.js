@@ -626,3 +626,57 @@ export const getWeeklyCompletionData = () => {
 
     return result;
 };
+
+// ============================================
+// CARRYOVER REMINDER
+// ============================================
+
+const CARRYOVER_DISMISSED_KEY = 'bwg_carryover_dismissed';
+
+/**
+ * Get yesterday's incomplete tasks
+ * Returns array of task objects that were not completed
+ */
+export const getYesterdaysIncompleteTasks = () => {
+    const data = loadData();
+    const yesterdayKey = getYesterdayKey();
+    const yesterdayData = data[yesterdayKey];
+
+    if (!yesterdayData || !yesterdayData.tasks) {
+        return [];
+    }
+
+    return yesterdayData.tasks.filter(task => !task.completed);
+};
+
+/**
+ * Check if carryover reminder was dismissed for today
+ */
+export const isCarryoverDismissed = () => {
+    try {
+        const dismissed = localStorage.getItem(CARRYOVER_DISMISSED_KEY);
+        if (!dismissed) return false;
+
+        const dismissedData = JSON.parse(dismissed);
+        const todayKey = getTodayKey();
+
+        // Only dismissed for today if dismissedDate matches
+        return dismissedData.dismissedDate === todayKey;
+    } catch (error) {
+        return false;
+    }
+};
+
+/**
+ * Dismiss carryover reminder for today
+ */
+export const dismissCarryover = () => {
+    try {
+        const todayKey = getTodayKey();
+        localStorage.setItem(CARRYOVER_DISMISSED_KEY, JSON.stringify({
+            dismissedDate: todayKey
+        }));
+    } catch (error) {
+        console.error('Error dismissing carryover:', error);
+    }
+};

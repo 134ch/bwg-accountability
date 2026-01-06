@@ -13,6 +13,7 @@ import WeeklyCalendar from './components/WeeklyCalendar'
 import ReflectionModal from './components/ReflectionModal'
 import ReflectionsTab from './components/ReflectionsTab'
 import QuickLinks from './components/QuickLinks'
+import CarryoverReminder from './components/CarryoverReminder'
 import {
     loadTodayTasks, saveTodayTasks, loadStreakData,
     getDaysRemainingToGoal, didMissYesterday,
@@ -81,23 +82,30 @@ function App() {
         const dayData = getTasksForDay(viewingDay);
         if (!dayData) return;
 
-        // Check if we have saved progress for today
-        const savedTasks = loadTodayTasks();
         const isToday = viewingDay === currentDay;
 
-        if (isToday && savedTasks && savedTasks.tasks && savedTasks.dayNumber === viewingDay) {
-            // Load saved progress for today
-            setTasks(savedTasks.tasks);
+        // ALWAYS start with fresh tasks for this day from the template
+        const freshTasks = dayData.tasks.map(task => ({
+            ...task,
+            completed: false,
+            timerActive: false,
+            timeSpent: 0,
+            bufferedMinutes: getBufferedTime(task.estimatedMinutes)
+        }));
+
+        if (isToday) {
+            // For today: check if we have saved progress
+            const savedTasks = loadTodayTasks();
+            if (savedTasks && savedTasks.tasks && savedTasks.dayNumber === viewingDay) {
+                // Load saved progress (includes any carryover tasks)
+                setTasks(savedTasks.tasks);
+            } else {
+                // No saved progress, use fresh tasks
+                setTasks(freshTasks);
+            }
         } else {
-            // Initialize fresh tasks for this day
-            const initializedTasks = dayData.tasks.map(task => ({
-                ...task,
-                completed: false,
-                timerActive: false,
-                timeSpent: 0,
-                bufferedMinutes: getBufferedTime(task.estimatedMinutes)
-            }));
-            setTasks(initializedTasks);
+            // For other days: always use fresh tasks from template (no carryovers)
+            setTasks(freshTasks);
         }
     }, [viewingDay, currentDay, showStartModal]);
 
@@ -196,6 +204,23 @@ function App() {
         setViewingDay(currentDay);
     };
 
+    // Add carryover tasks from yesterday to today
+    const handleAddCarryoverTasks = useCallback((carryoverTasks) => {
+        setTasks(prev => {
+            // Create new tasks from carryover, marking them as carryover
+            const newTasks = carryoverTasks.map(task => ({
+                ...task,
+                id: `carryover-${task.id}`,
+                completed: false,
+                isCarryover: true,
+                timerActive: false,
+                timeSpent: 0,
+                startedAt: null
+            }));
+            return [...prev, ...newTasks];
+        });
+    }, []);
+
     const handleCloseReflectionModal = () => {
         setShowReflectionModal(false);
     };
@@ -261,14 +286,6 @@ function App() {
                     </p>
                 </header>
 
-                {/* Missed Day Warning */}
-                {showMissedWarning && !allCompleted && isViewingToday && activeTab === 'tasks' && (
-                    <div className="alert-banner warning animate-fadeIn">
-                        <AlertTriangle size={18} />
-                        <span>You missed yesterday, but don't miss today! 💪</span>
-                    </div>
-                )}
-
                 {/* Tab Toggle */}
                 <div className="tab-toggle glassmorphism animate-fadeIn">
                     <button
@@ -295,6 +312,9 @@ function App() {
                 {/* Main Content */}
                 {activeTab === 'tasks' ? (
                     <>
+                        {/* Carryover Reminder for incomplete yesterday tasks */}
+                        <CarryoverReminder onAddTasks={handleAddCarryoverTasks} />
+
                         {/* Quick Links */}
                         <QuickLinks />
 

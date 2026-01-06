@@ -1,0 +1,254 @@
+/* Carryover Reminder Styles */
+
+.carryover-reminder {
+    display: flex;
+    align-items: flex-start;
+    gap: var(--space-md);
+    padding: var(--space-md);
+    background: rgba(249, 115, 22, 0.1);
+    border: 1px solid rgba(249, 115, 22, 0.3);
+    border-radius: var(--radius-md);
+    margin-bottom: var(--space-md);
+    position: relative;
+}
+
+.carryover-icon {
+    flex-shrink: 0;
+    color: var(--color-warning);
+    margin-top: 2px;
+}
+
+.carryover-content {
+    flex: 1;
+}
+
+.carryover-title {
+    font-weight: 600;
+    color: var(--color-warning);
+    margin-bottom: var(--space-sm);
+    font-size: 0.875rem;
+}
+
+.carryover-tasks {
+    list-style: none;
+    padding: 0;
+    margin: 0 0 var(--space-md) 0;
+}
+
+.carryover-tasks li {
+    display: flex;
+    align-items: center;
+    gap: var(--space-xs);
+    font-size: 0.8rem;
+    color: var(--color-text-secondary);
+    padding: var(--space-xs) 0;
+}
+
+.carryover-tasks .task-bullet {
+    color: var(--color-text-muted);
+    flex-shrink: 0;
+}
+
+.carryover-more {
+    color: var(--color-text-muted);
+    font-style: italic;
+}
+
+/* Action Buttons */
+.carryover-actions {
+    display: flex;
+    gap: var(--space-sm);
+    flex-wrap: wrap;
+}
+
+.carryover-btn {
+    display: flex;
+    align-items: center;
+    gap: var(--space-xs);
+    padding: var(--space-xs) var(--space-sm);
+    font-size: 0.75rem;
+    font-weight: 500;
+    border-radius: var(--radius-sm);
+    cursor: pointer;
+    transition: all var(--transition-fast);
+    border: 1px solid;
+}
+
+.carryover-btn-add {
+    background: var(--color-success);
+    border-color: var(--color-success);
+    color: white;
+}
+
+.carryover-btn-add:hover {
+    background: #16a34a;
+}
+
+.carryover-btn-skip {
+    background: transparent;
+    border-color: var(--color-border);
+    color: var(--color-text-secondary);
+}
+
+.carryover-btn-skip:hover {
+    background: var(--color-bg-secondary);
+    color: var(--color-text-primary);
+}
+
+.carryover-dismiss {
+    position: absolute;
+    top: var(--space-sm);
+    right: var(--space-sm);
+    padding: var(--space-xs);
+    background: transparent;
+    border: none;
+    color: var(--color-text-muted);
+    cursor: pointer;
+    border-radius: var(--radius-sm);
+    transition: all var(--transition-fast);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.carryover-dismiss:hover {
+    background: rgba(255, 255, 255, 0.1);
+    color: var(--color-text-primary);
+}
+
+/* Confirmation Modal */
+.carryover-modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.6);
+    backdrop-filter: blur(4px);
+    z-index: 9999;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: var(--space-md);
+}
+
+.carryover-modal {
+    background: var(--color-bg-secondary);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-lg);
+    padding: var(--space-lg);
+    max-width: 400px;
+    width: 100%;
+}
+
+.carryover-modal h3 {
+    font-size: 1.125rem;
+    font-weight: 600;
+    color: var(--color-text-primary);
+    margin-bottom: var(--space-md);
+}
+
+.carryover-modal p {
+    font-size: 0.875rem;
+    color: var(--color-text-secondary);
+    margin-bottom: var(--space-sm);
+    line-height: 1.5;
+}
+
+.carryover-modal .modal-note {
+    font-size: 0.8rem;
+    color: var(--color-text-muted);
+    font-style: italic;
+    margin-bottom: var(--space-lg);
+}
+
+.time-warning {
+    display: flex;
+    align-items: center;
+    gap: var(--space-sm);
+    padding: var(--space-sm);
+    background: rgba(249, 115, 22, 0.1);
+    border: 1px solid rgba(249, 115, 22, 0.3);
+    border-radius: var(--radius-sm);
+    color: var(--color-warning);
+    font-size: 0.875rem;
+    font-weight: 500;
+    margin-bottom: var(--space-md);
+}
+
+.modal-actions {
+    display: flex;
+    gap: var(--space-sm);
+    justify-content: flex-end;
+}
+
+.modal-btn {
+    padding: var(--space-sm) var(--space-md);
+    font-size: 0.875rem;
+    font-weight: 500;
+    border-radius: var(--radius-md);
+    cursor: pointer;
+    transition: all var(--transition-fast);
+    border: 1px solid;
+}
+
+.modal-btn-cancel {
+    background: transparent;
+    border-color: var(--color-border);
+    color: var(--color-text-secondary);
+}
+
+.modal-btn-cancel:hover {
+    background: var(--color-bg-card);
+    color: var(--color-text-primary);
+}
+
+.modal-btn-confirm {
+    background: var(--color-accent-primary);
+    border-color: var(--color-accent-primary);
+    color: white;
+}
+
+.modal-btn-confirm:hover {
+    opacity: 0.9;
+}
+
+/* Mobile optimization */
+@media (max-width: 480px) {
+    .carryover-reminder {
+        padding: var(--space-sm);
+        gap: var(--space-sm);
+    }
+
+    .carryover-title {
+        font-size: 0.8rem;
+        padding-right: var(--space-lg);
+    }
+
+    .carryover-tasks li {
+        font-size: 0.75rem;
+    }
+
+    .carryover-actions {
+        flex-direction: column;
+    }
+
+    .carryover-btn {
+        justify-content: center;
+        min-height: 44px;
+    }
+
+    .carryover-modal {
+        padding: var(--space-md);
+    }
+
+    .modal-actions {
+        flex-direction: column;
+    }
+
+    .modal-btn {
+        width: 100%;
+        min-height: 44px;
+        justify-content: center;
+    }
+}

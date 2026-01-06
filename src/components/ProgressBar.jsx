@@ -195,8 +195,8 @@ export const MotivationalMessage = ({
     allCompleteToday = false
 }) => {
     const getMessage = () => {
-        // If streak broken
-        if (streakBroken) {
+        // If streak broken (but not on Day 1 - can't miss day before you started!)
+        if (streakBroken && dayNumber > 1) {
             return {
                 type: 'warning',
                 icon: <AlertTriangle size={18} />,
