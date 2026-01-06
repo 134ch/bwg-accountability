@@ -1,12 +1,12 @@
 import { useState, useEffect } from 'react';
 import { ExternalLink, Star } from 'lucide-react';
-import { defaultToolLinks } from '../data/toolLinks';
+import { quickLinks } from '../config';
 import { trackToolClick, getMostUsedTool } from '../utils/storage';
 import './QuickLinks.css';
 
 function QuickLinks() {
     const [mostUsed, setMostUsed] = useState(null);
-    const tools = defaultToolLinks;
+    const tools = quickLinks;
 
     useEffect(() => {
         setMostUsed(getMostUsedTool());

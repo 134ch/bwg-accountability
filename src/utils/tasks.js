@@ -80,10 +80,22 @@ export const externalTools = [
 ];
 
 /**
- * Apply 15% buffer to estimated time
+ * Apply buffer to estimated time using config settings
  */
+import { timerSettings } from '../config';
+
 export const getBufferedTime = (minutes) => {
-    return Math.ceil(minutes * 1.15);
+    const buffered = Math.ceil(minutes * timerSettings.bufferMultiplier);
+    const buffer = buffered - minutes;
+
+    // Apply min/max buffer constraints
+    if (buffer < timerSettings.minBuffer) {
+        return minutes + timerSettings.minBuffer;
+    }
+    if (buffer > timerSettings.maxBuffer) {
+        return minutes + timerSettings.maxBuffer;
+    }
+    return buffered;
 };
 
 /**
