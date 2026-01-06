@@ -255,3 +255,103 @@
     border-color: rgba(239, 68, 68, 0.3);
     color: #ef4444;
 }
+
+/* Alarm Modal */
+.alarm-modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(239, 68, 68, 0.15);
+    backdrop-filter: blur(4px);
+    z-index: 9999;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    animation: alarm-pulse 0.5s ease-in-out infinite alternate;
+}
+
+@keyframes alarm-pulse {
+    from {
+        background: rgba(239, 68, 68, 0.1);
+    }
+
+    to {
+        background: rgba(239, 68, 68, 0.25);
+    }
+}
+
+.alarm-modal {
+    background: var(--color-bg-secondary);
+    border: 2px solid #ef4444;
+    border-radius: var(--radius-lg);
+    padding: var(--space-xl);
+    text-align: center;
+    box-shadow: 0 0 40px rgba(239, 68, 68, 0.4);
+    animation: alarm-shake 0.3s ease-in-out infinite;
+}
+
+@keyframes alarm-shake {
+
+    0%,
+    100% {
+        transform: translateX(0);
+    }
+
+    25% {
+        transform: translateX(-3px);
+    }
+
+    75% {
+        transform: translateX(3px);
+    }
+}
+
+.alarm-icon {
+    font-size: 3rem;
+    margin-bottom: var(--space-md);
+    animation: alarm-bounce 0.5s ease-in-out infinite;
+}
+
+@keyframes alarm-bounce {
+
+    0%,
+    100% {
+        transform: scale(1);
+    }
+
+    50% {
+        transform: scale(1.1);
+    }
+}
+
+.alarm-title {
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: #ef4444;
+    margin-bottom: var(--space-sm);
+}
+
+.alarm-message {
+    font-size: 0.875rem;
+    color: var(--color-text-secondary);
+    margin-bottom: var(--space-lg);
+}
+
+.alarm-dismiss-btn {
+    background: #ef4444;
+    color: white;
+    border: none;
+    padding: var(--space-md) var(--space-xl);
+    border-radius: var(--radius-md);
+    font-size: 1rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all var(--transition-fast);
+}
+
+.alarm-dismiss-btn:hover {
+    background: #dc2626;
+    transform: scale(1.05);
+}

@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
+import { playAlarm, dismissAlarm as dismissAlarmSound, getAlarmThresholds, checkAlarmTrigger } from '../utils/alarms';
 
 /**
  * Custom hook for robust countdown timer with persistence
@@ -143,11 +144,15 @@ export const useTimer = (taskId, estimatedMinutes, onComplete, onTimeUpdate) => 
     const [remainingSeconds, setRemainingSeconds] = useState(totalSeconds);
     const [timerState, setTimerState] = useState(TIMER_STATE.IDLE);
     const [elapsedSeconds, setElapsedSeconds] = useState(0);
+    const [showAlarmModal, setShowAlarmModal] = useState(false);
 
     const intervalRef = useRef(null);
     const startTimeRef = useRef(null);
     const pausedAtRef = useRef(null);
     const notifiedRef = useRef(false);
+    const playedAlarmsRef = useRef({ stage1: false, stage2: false, stage3: false, stage4: false });
+    const alarmThresholdsRef = useRef(getAlarmThresholds(totalSeconds));
+    const stage4StopRef = useRef(null);
 
     // Calculate current state based on remaining time
     const getTimerState = useCallback((remaining) => {
@@ -192,6 +197,17 @@ export const useTimer = (taskId, estimatedMinutes, onComplete, onTimeUpdate) => 
                 const newState = getTimerState(remaining);
                 if (newState !== timerState && newState !== TIMER_STATE.RUNNING) {
                     setTimerState(newState);
+                }
+
+                // Check and trigger alarms at thresholds
+                const alarmStage = checkAlarmTrigger(remaining, alarmThresholdsRef.current, playedAlarmsRef.current);
+                if (alarmStage) {
+                    playedAlarmsRef.current[`stage${alarmStage}`] = true;
+                    const stopFn = playAlarm(alarmStage);
+                    if (alarmStage === 4) {
+                        stage4StopRef.current = stopFn;
+                        setShowAlarmModal(true);
+                    }
                 }
 
                 // Send notification when timer expires (only once)
@@ -313,6 +329,16 @@ export const useTimer = (taskId, estimatedMinutes, onComplete, onTimeUpdate) => 
         }
     }, [timerState, start, pause]);
 
+    // Dismiss stage 4 alarm
+    const dismissAlarm = useCallback(() => {
+        if (stage4StopRef.current) {
+            stage4StopRef.current();
+            stage4StopRef.current = null;
+        }
+        dismissAlarmSound();
+        setShowAlarmModal(false);
+    }, []);
+
     // Check if timer is active
     const isActive = timerState === TIMER_STATE.RUNNING ||
         timerState === TIMER_STATE.WARNING ||
@@ -339,6 +365,7 @@ export const useTimer = (taskId, estimatedMinutes, onComplete, onTimeUpdate) => 
         isPaused,
         isExpired,
         isWarning,
+        showAlarmModal,
 
         // Progress (0-100, can exceed 100 for overtime)
         progress: Math.min(100, ((totalSeconds - remainingSeconds) / totalSeconds) * 100),
@@ -348,7 +375,8 @@ export const useTimer = (taskId, estimatedMinutes, onComplete, onTimeUpdate) => 
         pause,
         stop,
         reset,
-        toggle
+        toggle,
+        dismissAlarm
     };
 };
 

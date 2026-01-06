@@ -172,10 +172,12 @@ export const CompactTimer = ({
         isPaused,
         isExpired,
         isWarning,
+        showAlarmModal,
         start,
         pause,
         stop,
-        toggle
+        toggle,
+        dismissAlarm
     } = useTimer(taskId, estimatedMinutes, onComplete, onTimeUpdate);
 
     // Stop timer when task is marked complete (disabled becomes true)
@@ -195,6 +197,11 @@ export const CompactTimer = ({
     const handleStop = (e) => {
         e.stopPropagation();
         stop();
+    };
+
+    const handleDismissAlarm = (e) => {
+        e.stopPropagation();
+        dismissAlarm();
     };
 
     const getButtonClass = () => {
@@ -238,6 +245,20 @@ export const CompactTimer = ({
                 >
                     <Square size={12} />
                 </button>
+            )}
+
+            {/* Stage 4 Alarm Dismiss Modal */}
+            {showAlarmModal && (
+                <div className="alarm-modal-overlay" onClick={handleDismissAlarm}>
+                    <div className="alarm-modal" onClick={(e) => e.stopPropagation()}>
+                        <div className="alarm-icon">⏰</div>
+                        <div className="alarm-title">Time's Up!</div>
+                        <div className="alarm-message">Timer has expired</div>
+                        <button className="alarm-dismiss-btn" onClick={handleDismissAlarm}>
+                            Dismiss Alarm
+                        </button>
+                    </div>
+                </div>
             )}
         </div>
     );
