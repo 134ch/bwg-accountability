@@ -14,6 +14,7 @@ import ReflectionModal from './components/ReflectionModal'
 import ReflectionsTab from './components/ReflectionsTab'
 import QuickLinks from './components/QuickLinks'
 import CarryoverReminder from './components/CarryoverReminder'
+import Celebration from './components/Celebration'
 import {
     loadTodayTasks, saveTodayTasks, loadStreakData,
     getDaysRemainingToGoal, didMissYesterday,
@@ -35,6 +36,8 @@ function App() {
     const [activeTimerId, setActiveTimerId] = useState(null)
     const [weeklyData, setWeeklyData] = useState({})
     const [activeTab, setActiveTab] = useState('tasks') // 'tasks' or 'reflections'
+    const [showCelebration, setShowCelebration] = useState(false)
+    const [celebrationTriggered, setCelebrationTriggered] = useState(false)
 
     // Current phase info
     const currentPhase = getPhaseForDay(viewingDay);
@@ -117,11 +120,16 @@ function App() {
             const allCompleted = tasks.every(t => t.completed);
             if (allCompleted) {
                 setStreakData(loadStreakData());
+                // Trigger celebration if not already triggered today
+                if (!celebrationTriggered) {
+                    setShowCelebration(true);
+                    setCelebrationTriggered(true);
+                }
             }
             // Update weekly data
             setWeeklyData(getWeeklyCompletionData());
         }
-    }, [tasks, viewingDay, currentDay]);
+    }, [tasks, viewingDay, currentDay, celebrationTriggered]);
 
     // Handler for recording time when timer stops
     const handleTimeUpdate = useCallback((taskId, actualSeconds, estimatedSeconds) => {
@@ -453,6 +461,14 @@ function App() {
                     </div>
                     <p className="phase-goal">{currentPhase.goal}</p>
                 </div>
+
+                {/* Celebration Modal */}
+                <Celebration
+                    show={showCelebration}
+                    streakDays={streakData.currentStreak}
+                    daysRemaining={getDaysRemainingToGoal()}
+                    onClose={() => setShowCelebration(false)}
+                />
             </div>
         </div>
     );
