@@ -178,6 +178,13 @@ export const CompactTimer = ({
         toggle
     } = useTimer(taskId, estimatedMinutes, onComplete, onTimeUpdate);
 
+    // Stop timer when task is marked complete (disabled becomes true)
+    useEffect(() => {
+        if (disabled && (isActive || isPaused)) {
+            stop();
+        }
+    }, [disabled, isActive, isPaused, stop]);
+
     const handleToggle = (e) => {
         e.stopPropagation();
         if (disabled) return;

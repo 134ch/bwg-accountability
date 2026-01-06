@@ -151,10 +151,32 @@ function App() {
             navigator.vibrate(25);
         }
 
-        setTasks(prev => prev.map(task =>
-            task.id === taskId ? { ...task, completed: !task.completed } : task
-        ));
-    }, [isViewingToday]);
+        setTasks(prev => prev.map(task => {
+            if (task.id === taskId) {
+                const newCompleted = !task.completed;
+
+                // If marking task as complete, stop the timer
+                if (newCompleted) {
+                    // Clear from active timers in localStorage
+                    try {
+                        const timers = JSON.parse(localStorage.getItem('bwg_active_timers') || '{}');
+                        delete timers[taskId];
+                        localStorage.setItem('bwg_active_timers', JSON.stringify(timers));
+                    } catch (e) {
+                        console.error('Error clearing timer:', e);
+                    }
+
+                    // Clear active timer ID if this was the active timer
+                    if (activeTimerId === taskId) {
+                        setActiveTimerId(null);
+                    }
+                }
+
+                return { ...task, completed: newCompleted };
+            }
+            return task;
+        }));
+    }, [isViewingToday, activeTimerId]);
 
     // Activate a timer (only one can be active at a time)
     const activateTimer = useCallback((taskId) => {
