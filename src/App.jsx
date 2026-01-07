@@ -7,6 +7,7 @@ import {
 import { dailyTasks, getTasksForDay } from './data/dailyTasks'
 import { getBufferedTime } from './utils/tasks'
 import { phases, getPhaseForDay, toolUrls } from './data/phases'
+import { getDayFocus } from './utils/dayFocus'
 import { CompactTimer } from './components/Timer'
 import ProgressBar, { StreakCounter, MotivationalMessage } from './components/ProgressBar'
 import WeeklyCalendar from './components/WeeklyCalendar'
@@ -244,6 +245,12 @@ function App() {
     // Day data for viewing
     const dayData = getTasksForDay(viewingDay);
 
+    // Get today's date in YYYY-MM-DD format for min attribute
+    const todayForInput = getTodayKey();
+
+    // Validate that selected date is not in the past
+    const isStartDateValid = startDateInput >= todayForInput;
+
     // Start Date Modal
     if (showStartModal) {
         return (
@@ -262,10 +269,22 @@ function App() {
                             <input
                                 type="date"
                                 value={startDateInput}
+                                min={todayForInput}
                                 onChange={(e) => setStartDateInput(e.target.value)}
+                                title="You can only start today or in the future"
                             />
+                            {!isStartDateValid && (
+                                <p className="date-error">
+                                    <AlertTriangle size={14} />
+                                    Start date cannot be in the past
+                                </p>
+                            )}
                         </div>
-                        <button className="btn btn-primary" onClick={handleStartDateSubmit}>
+                        <button
+                            className="btn btn-primary"
+                            onClick={handleStartDateSubmit}
+                            disabled={!isStartDateValid}
+                        >
                             Start My Journey
                         </button>
                     </div>
@@ -401,7 +420,7 @@ function App() {
                         {/* Task List */}
                         <section className="tasks-section animate-fadeIn">
                             <div className="section-header">
-                                <h2>{dayData?.dayOfWeek || 'Today'}'s Tasks</h2>
+                                <h2>{getDayFocus(viewingDay)}</h2>
                                 {!isViewingToday && (
                                     <span className="viewing-past-label">Viewing Only</span>
                                 )}

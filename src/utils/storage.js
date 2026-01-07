@@ -263,24 +263,34 @@ export const getCurrentWeekKey = () => {
 };
 
 /**
+ * Reflection days - every 7 days plus final day
+ */
+const REFLECTION_DAYS = [7, 14, 21, 28, 35, 42, 49, 56, 60];
+
+/**
+ * Check if a given day number is a reflection day
+ * @param {number} dayNumber - Day number (1-60)
+ * @returns {boolean} True if it's a reflection day
+ */
+export const isReflectionDay = (dayNumber) => {
+    return REFLECTION_DAYS.includes(dayNumber);
+};
+
+/**
  * Check if reflection modal should show
- * Returns true only if: Sunday AND 3+ days since start date
+ * Returns true if: current day is a reflection day (7, 14, 21, 28, 35, 42, 49, 56, 60)
+ * Works regardless of what day of the week the user started
  */
 export const shouldShowReflection = () => {
-    const today = new Date();
-    // Must be Sunday
-    if (today.getDay() !== 0) return false;
-
     // Must have a start date
     const startDate = getStartDate();
     if (!startDate) return false;
 
-    // Calculate days since start
-    const start = new Date(startDate);
-    const daysSinceStart = Math.floor((today - start) / (1000 * 60 * 60 * 24));
+    // Get current day number (1-60)
+    const currentDay = getCurrentDayNumber();
 
-    // Need at least 3 days since start
-    return daysSinceStart >= 3;
+    // Check if today is a reflection day
+    return isReflectionDay(currentDay);
 };
 
 /**
