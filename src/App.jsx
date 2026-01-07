@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback } from 'react'
 import {
     Target, Calendar, Clock, Check,
-    ExternalLink, AlertTriangle,
+    ExternalLink, AlertTriangle, RotateCcw,
     ChevronLeft, ChevronRight, ListTodo, BookOpen
 } from 'lucide-react'
 import { dailyTasks, getTasksForDay } from './data/dailyTasks'
@@ -15,6 +15,8 @@ import ReflectionsTab from './components/ReflectionsTab'
 import QuickLinks from './components/QuickLinks'
 import CarryoverReminder from './components/CarryoverReminder'
 import Celebration from './components/Celebration'
+import ResetDataModal from './components/ResetDataModal'
+import { initializeStorage } from './utils/storage-service'
 import {
     loadTodayTasks, saveTodayTasks, loadStreakData,
     getDaysRemainingToGoal, didMissYesterday,
@@ -38,49 +40,59 @@ function App() {
     const [activeTab, setActiveTab] = useState('tasks') // 'tasks' or 'reflections'
     const [showCelebration, setShowCelebration] = useState(false)
     const [celebrationTriggered, setCelebrationTriggered] = useState(false)
+    const [showResetModal, setShowResetModal] = useState(false)
+    const [storageReady, setStorageReady] = useState(false)
 
     // Current phase info
     const currentPhase = getPhaseForDay(viewingDay);
 
     // Initialize on mount
     useEffect(() => {
-        // Check if start date is set
-        if (!hasStartDate()) {
-            setShowStartModal(true);
-            return;
-        }
+        const init = async () => {
+            // Initialize IndexedDB + localStorage storage
+            await initializeStorage();
+            setStorageReady(true);
 
-        // Get current day number
-        const dayNum = getCurrentDayNumber();
-        setCurrentDay(dayNum);
-        setViewingDay(dayNum);
-
-        // Load streak
-        setStreakData(loadStreakData());
-
-        // Check if missed yesterday
-        setShowMissedWarning(didMissYesterday());
-
-        // Check for Sunday reflection (with 3+ days rule)
-        if (shouldShowReflection()) {
-            const weekKey = getCurrentWeekKey();
-            const reflections = loadReflections();
-            if (!reflections[weekKey]) {
-                setShowReflectionModal(true);
+            // Check if start date is set
+            if (!hasStartDate()) {
+                setShowStartModal(true);
+                return;
             }
-        }
 
-        // Register service worker for PWA
-        if ('serviceWorker' in navigator) {
-            navigator.serviceWorker.register('/bwg-accountability/sw.js')
-                .then((reg) => console.log('SW registered:', reg.scope))
-                .catch((err) => console.log('SW registration failed:', err));
-        }
+            // Get current day number
+            const dayNum = getCurrentDayNumber();
+            setCurrentDay(dayNum);
+            setViewingDay(dayNum);
+
+            // Load streak
+            setStreakData(loadStreakData());
+
+            // Check if missed yesterday
+            setShowMissedWarning(didMissYesterday());
+
+            // Check for Sunday reflection (with 3+ days rule)
+            if (shouldShowReflection()) {
+                const weekKey = getCurrentWeekKey();
+                const reflections = loadReflections();
+                if (!reflections[weekKey]) {
+                    setShowReflectionModal(true);
+                }
+            }
+
+            // Register service worker for PWA
+            if ('serviceWorker' in navigator) {
+                navigator.serviceWorker.register('/bwg-accountability/sw.js')
+                    .then((reg) => console.log('SW registered:', reg.scope))
+                    .catch((err) => console.log('SW registration failed:', err));
+            }
+        };
+        init();
     }, []);
 
     // Load tasks when viewing day changes
     useEffect(() => {
-        if (showStartModal) return;
+        // Wait for storage to be ready before loading tasks
+        if (!storageReady || showStartModal) return;
 
         const dayData = getTasksForDay(viewingDay);
         if (!dayData) return;
@@ -110,26 +122,26 @@ function App() {
             // For other days: always use fresh tasks from template (no carryovers)
             setTasks(freshTasks);
         }
-    }, [viewingDay, currentDay, showStartModal]);
+    }, [viewingDay, currentDay, showStartModal, storageReady]);
 
     // Save tasks whenever they change (only for current day)
     useEffect(() => {
-        if (tasks.length > 0 && viewingDay === currentDay) {
-            saveTodayTasks(tasks, viewingDay);
-            // Update streak when all completed
-            const allCompleted = tasks.every(t => t.completed);
-            if (allCompleted) {
-                setStreakData(loadStreakData());
-                // Trigger celebration if not already triggered today
-                if (!celebrationTriggered) {
-                    setShowCelebration(true);
-                    setCelebrationTriggered(true);
-                }
+        // Only save once storage is ready and we have tasks
+        if (!storageReady || tasks.length === 0 || viewingDay !== currentDay) return;
+        saveTodayTasks(tasks, viewingDay);
+        // Update streak when all completed
+        const allCompleted = tasks.every(t => t.completed);
+        if (allCompleted) {
+            setStreakData(loadStreakData());
+            // Trigger celebration if not already triggered today
+            if (!celebrationTriggered) {
+                setShowCelebration(true);
+                setCelebrationTriggered(true);
             }
-            // Update weekly data
-            setWeeklyData(getWeeklyCompletionData());
         }
-    }, [tasks, viewingDay, currentDay, celebrationTriggered]);
+        // Update weekly data
+        setWeeklyData(getWeeklyCompletionData());
+    }, [tasks, viewingDay, currentDay, celebrationTriggered, storageReady]);
 
     // Handler for recording time when timer stops
     const handleTimeUpdate = useCallback((taskId, actualSeconds, estimatedSeconds) => {
@@ -171,21 +183,9 @@ function App() {
             if (task.id === taskId) {
                 const newCompleted = !task.completed;
 
-                // If marking task as complete, stop the timer
-                if (newCompleted) {
-                    // Clear from active timers in localStorage
-                    try {
-                        const timers = JSON.parse(localStorage.getItem('bwg_active_timers') || '{}');
-                        delete timers[taskId];
-                        localStorage.setItem('bwg_active_timers', JSON.stringify(timers));
-                    } catch (e) {
-                        console.error('Error clearing timer:', e);
-                    }
-
-                    // Clear active timer ID if this was the active timer
-                    if (activeTimerId === taskId) {
-                        setActiveTimerId(null);
-                    }
+                // If marking task as complete, clear active timer
+                if (newCompleted && activeTimerId === taskId) {
+                    setActiveTimerId(null);
                 }
 
                 return { ...task, completed: newCompleted };
@@ -288,10 +288,19 @@ function App() {
                             <span className="gradient-text">60-Day Sprint</span>
                         </span>
                     </div>
-                    <p className="date">
-                        <Calendar size={14} />
-                        {dateString}
-                    </p>
+                    <div className="header-actions">
+                        <button
+                            className="btn btn-sm btn-ghost reset-btn"
+                            onClick={() => setShowResetModal(true)}
+                            title="Reset Data"
+                        >
+                            <RotateCcw size={16} />
+                        </button>
+                        <p className="date">
+                            <Calendar size={14} />
+                            {dateString}
+                        </p>
+                    </div>
                 </header>
 
                 {/* Tab Toggle */}
@@ -468,6 +477,12 @@ function App() {
                     streakDays={streakData.currentStreak}
                     daysRemaining={getDaysRemainingToGoal()}
                     onClose={() => setShowCelebration(false)}
+                />
+
+                {/* Reset Data Modal */}
+                <ResetDataModal
+                    show={showResetModal}
+                    onClose={() => setShowResetModal(false)}
                 />
             </div>
         </div>

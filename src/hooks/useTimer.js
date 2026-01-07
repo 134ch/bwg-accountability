@@ -2,17 +2,17 @@ import { useState, useEffect, useCallback, useRef } from 'react';
 import { playAlarm, dismissAlarm as dismissAlarmSound, getAlarmThresholds, checkAlarmTrigger } from '../utils/alarms';
 
 /**
- * Custom hook for robust countdown timer with persistence
+ * Custom hook for robust countdown timer
  * 
  * Features:
  * - Countdown from estimated time (with 15% buffer)
- * - Persists across tab switches using timestamps
  * - Warning state when < 1 minute remains
  * - Notification when timer expires
  * - Tracks actual time spent
+ * 
+ * NOTE: Timer state is NOT persisted. When user closes/refreshes the app,
+ * timer resets to 0:00. This is intentional for accountability app.
  */
-
-const TIMER_STORAGE_KEY = 'bwg_active_timers';
 
 /**
  * Get buffered time (add 15% to estimate)
@@ -39,29 +39,6 @@ export const formatTimeDisplay = (seconds, showOvertime = true) => {
         return `+${formatTime(Math.abs(seconds))} overtime`;
     }
     return formatTime(seconds);
-};
-
-/**
- * Load active timers from storage
- */
-const loadActiveTimers = () => {
-    try {
-        const data = localStorage.getItem(TIMER_STORAGE_KEY);
-        return data ? JSON.parse(data) : {};
-    } catch {
-        return {};
-    }
-};
-
-/**
- * Save active timers to storage
- */
-const saveActiveTimers = (timers) => {
-    try {
-        localStorage.setItem(TIMER_STORAGE_KEY, JSON.stringify(timers));
-    } catch (error) {
-        console.error('Error saving timers:', error);
-    }
 };
 
 /**
@@ -161,24 +138,6 @@ export const useTimer = (taskId, estimatedMinutes, onComplete, onTimeUpdate) => 
         return TIMER_STATE.RUNNING;
     }, []);
 
-    // Load persisted timer state on mount
-    useEffect(() => {
-        const timers = loadActiveTimers();
-        const savedTimer = timers[taskId];
-
-        if (savedTimer && savedTimer.isRunning) {
-            // Calculate time elapsed since timer was saved
-            const now = Date.now();
-            const elapsedSinceStart = Math.floor((now - savedTimer.startTime) / 1000);
-            const newRemaining = savedTimer.totalSeconds - elapsedSinceStart;
-
-            setRemainingSeconds(newRemaining);
-            setElapsedSeconds(elapsedSinceStart);
-            startTimeRef.current = savedTimer.startTime;
-            setTimerState(getTimerState(newRemaining));
-        }
-    }, [taskId, getTimerState]);
-
     // Main timer tick
     useEffect(() => {
         if (timerState === TIMER_STATE.RUNNING ||
@@ -221,16 +180,6 @@ export const useTimer = (taskId, estimatedMinutes, onComplete, onTimeUpdate) => 
                     if (onComplete) onComplete(taskId, elapsed);
                 }
 
-                // Persist timer state
-                const timers = loadActiveTimers();
-                timers[taskId] = {
-                    startTime: startTimeRef.current,
-                    totalSeconds,
-                    isRunning: true,
-                    taskId
-                };
-                saveActiveTimers(timers);
-
             }, 1000);
         }
 
@@ -256,17 +205,7 @@ export const useTimer = (taskId, estimatedMinutes, onComplete, onTimeUpdate) => 
         }
 
         setTimerState(TIMER_STATE.RUNNING);
-
-        // Persist
-        const timers = loadActiveTimers();
-        timers[taskId] = {
-            startTime: startTimeRef.current,
-            totalSeconds,
-            isRunning: true,
-            taskId
-        };
-        saveActiveTimers(timers);
-    }, [timerState, taskId, totalSeconds]);
+    }, [timerState, totalSeconds]);
 
     // Pause timer
     const pause = useCallback(() => {
@@ -276,16 +215,8 @@ export const useTimer = (taskId, estimatedMinutes, onComplete, onTimeUpdate) => 
 
             pausedAtRef.current = Date.now();
             setTimerState(TIMER_STATE.PAUSED);
-
-            // Update persistence
-            const timers = loadActiveTimers();
-            if (timers[taskId]) {
-                timers[taskId].isRunning = false;
-                timers[taskId].pausedAt = pausedAtRef.current;
-                saveActiveTimers(timers);
-            }
         }
-    }, [timerState, taskId]);
+    }, [timerState]);
 
     // Stop timer and record time
     const stop = useCallback(() => {
@@ -297,11 +228,6 @@ export const useTimer = (taskId, estimatedMinutes, onComplete, onTimeUpdate) => 
         if (onTimeUpdate && elapsedSeconds > 0) {
             onTimeUpdate(taskId, elapsedSeconds, totalSeconds);
         }
-
-        // Clear from persistence
-        const timers = loadActiveTimers();
-        delete timers[taskId];
-        saveActiveTimers(timers);
 
         // Reset state
         setTimerState(TIMER_STATE.IDLE);
@@ -382,31 +308,18 @@ export const useTimer = (taskId, estimatedMinutes, onComplete, onTimeUpdate) => 
 
 /**
  * Hook for managing multiple timers
+ * Timer state is in-memory only (not persisted)
  */
 export const useTimerManager = () => {
     const [activeTaskId, setActiveTaskId] = useState(null);
-
-    // Load active timer on mount
-    useEffect(() => {
-        const timers = loadActiveTimers();
-        const activeTimer = Object.values(timers).find(t => t.isRunning);
-        if (activeTimer) {
-            setActiveTaskId(activeTimer.taskId);
-        }
-    }, []);
 
     const setActiveTimer = useCallback((taskId) => {
         setActiveTaskId(taskId);
     }, []);
 
     const clearActiveTimer = useCallback(() => {
-        if (activeTaskId) {
-            const timers = loadActiveTimers();
-            delete timers[activeTaskId];
-            saveActiveTimers(timers);
-        }
         setActiveTaskId(null);
-    }, [activeTaskId]);
+    }, []);
 
     return {
         activeTaskId,

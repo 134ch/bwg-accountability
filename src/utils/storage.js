@@ -1,12 +1,15 @@
 /**
  * Storage utility for persisting task data, streaks, reflections, and time tracking
+ * Uses storage-service.js for IndexedDB + localStorage hybrid storage
  */
 
-const STORAGE_KEY = 'bwg_accountability_data';
-const STREAK_KEY = 'bwg_streak_data';
-const REFLECTION_KEY = 'bwg_reflections';
-const START_DATE_KEY = 'bwg_start_date';
-const TIME_TRACKING_KEY = 'bwg_time_tracking';
+import {
+    saveData as saveToStorage,
+    loadDataSync,
+    getAllData,
+    deleteData,
+    STORES
+} from './storage-service';
 
 // 60-day goal configuration
 const GOAL_DAYS = 60;
@@ -28,12 +31,12 @@ export const getYesterdayKey = () => {
 };
 
 /**
- * Load all stored data
+ * Load all stored task data
  */
 export const loadData = () => {
     try {
-        const data = localStorage.getItem(STORAGE_KEY);
-        return data ? JSON.parse(data) : {};
+        const data = loadDataSync(STORES.TASKS, 'allTasks');
+        return data || {};
     } catch (error) {
         console.error('Error loading data:', error);
         return {};
@@ -41,11 +44,11 @@ export const loadData = () => {
 };
 
 /**
- * Save data to storage
+ * Save task data to storage
  */
 export const saveData = (data) => {
     try {
-        localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+        saveToStorage(STORES.TASKS, 'allTasks', data);
     } catch (error) {
         console.error('Error saving data:', error);
     }
@@ -85,8 +88,8 @@ export const saveTodayTasks = (tasks, dayNumber = null) => {
  */
 export const loadStreakData = () => {
     try {
-        const data = localStorage.getItem(STREAK_KEY);
-        return data ? JSON.parse(data) : {
+        const data = loadDataSync(STORES.APP_STATE, 'streak');
+        return data || {
             currentStreak: 0,
             lastCompletedDate: null,
             longestStreak: 0
@@ -99,7 +102,7 @@ export const loadStreakData = () => {
 
 export const saveStreakData = (streakData) => {
     try {
-        localStorage.setItem(STREAK_KEY, JSON.stringify(streakData));
+        saveToStorage(STORES.APP_STATE, 'streak', streakData);
     } catch (error) {
         console.error('Error saving streak data:', error);
     }
@@ -169,11 +172,8 @@ export const didMissYesterday = () => {
  */
 export const getStartDate = () => {
     try {
-        const data = localStorage.getItem(START_DATE_KEY);
-        if (data) {
-            return JSON.parse(data).startDate;
-        }
-        return null; // No start date set yet
+        const data = loadDataSync(STORES.APP_STATE, 'startDate');
+        return data ? data.startDate : null;
     } catch (error) {
         return null;
     }
@@ -181,7 +181,7 @@ export const getStartDate = () => {
 
 export const setStartDate = (dateString) => {
     try {
-        localStorage.setItem(START_DATE_KEY, JSON.stringify({ startDate: dateString }));
+        saveToStorage(STORES.APP_STATE, 'startDate', { startDate: dateString });
         return dateString;
     } catch (error) {
         console.error('Error setting start date:', error);
@@ -232,8 +232,8 @@ export const getGoalProgress = () => {
  */
 export const loadReflections = () => {
     try {
-        const data = localStorage.getItem(REFLECTION_KEY);
-        return data ? JSON.parse(data) : {};
+        const data = loadDataSync(STORES.REFLECTIONS, 'allReflections');
+        return data || {};
     } catch (error) {
         console.error('Error loading reflections:', error);
         return {};
@@ -249,7 +249,7 @@ export const saveReflection = (weekKey, reflection) => {
             change: reflection.change || '',
             savedAt: new Date().toISOString()
         };
-        localStorage.setItem(REFLECTION_KEY, JSON.stringify(reflections));
+        saveToStorage(STORES.REFLECTIONS, 'allReflections', reflections);
     } catch (error) {
         console.error('Error saving reflection:', error);
     }
@@ -318,8 +318,6 @@ export const exportReflectionsAsText = () => {
 // TOOL LINK TRACKING
 // ============================================
 
-const TOOL_CLICKS_KEY = 'bwg_tool_clicks';
-
 /**
  * Track a click on a tool link
  */
@@ -327,7 +325,7 @@ export const trackToolClick = (toolId) => {
     try {
         const stats = getToolClickStats();
         stats[toolId] = (stats[toolId] || 0) + 1;
-        localStorage.setItem(TOOL_CLICKS_KEY, JSON.stringify(stats));
+        saveToStorage(STORES.APP_STATE, 'toolClicks', stats);
     } catch (error) {
         console.error('Error tracking tool click:', error);
     }
@@ -338,8 +336,8 @@ export const trackToolClick = (toolId) => {
  */
 export const getToolClickStats = () => {
     try {
-        const data = localStorage.getItem(TOOL_CLICKS_KEY);
-        return data ? JSON.parse(data) : {};
+        const data = loadDataSync(STORES.APP_STATE, 'toolClicks');
+        return data || {};
     } catch (error) {
         console.error('Error loading tool stats:', error);
         return {};
@@ -400,13 +398,13 @@ export const getStats = (days = 7) => {
 
 /**
  * Clear all stored data
+ * Now delegates to storage-service for proper cleanup
  */
-export const clearAllData = () => {
+export const clearAllData = async () => {
     try {
-        localStorage.removeItem(STORAGE_KEY);
-        localStorage.removeItem(STREAK_KEY);
-        localStorage.removeItem(REFLECTION_KEY);
-        localStorage.removeItem(START_DATE_KEY);
+        // Import and use resetAllData from storage-service
+        const { resetAllData } = await import('./storage-service');
+        await resetAllData();
     } catch (error) {
         console.error('Error clearing data:', error);
     }
@@ -418,7 +416,7 @@ export const clearAllData = () => {
 export const resetStartDate = () => {
     try {
         const startDate = getTodayKey();
-        localStorage.setItem(START_DATE_KEY, JSON.stringify({ startDate }));
+        saveToStorage(STORES.APP_STATE, 'startDate', { startDate });
         return startDate;
     } catch (error) {
         console.error('Error resetting start date:', error);
@@ -435,8 +433,8 @@ export const resetStartDate = () => {
  */
 export const loadTimeTracking = () => {
     try {
-        const data = localStorage.getItem(TIME_TRACKING_KEY);
-        return data ? JSON.parse(data) : { tasks: {}, summary: {} };
+        const data = loadDataSync(STORES.TIME_TRACKING, 'allTimeData');
+        return data || { tasks: {}, summary: {} };
     } catch (error) {
         console.error('Error loading time tracking:', error);
         return { tasks: {}, summary: {} };
@@ -448,7 +446,7 @@ export const loadTimeTracking = () => {
  */
 export const saveTimeTracking = (data) => {
     try {
-        localStorage.setItem(TIME_TRACKING_KEY, JSON.stringify(data));
+        saveToStorage(STORES.TIME_TRACKING, 'allTimeData', data);
     } catch (error) {
         console.error('Error saving time tracking:', error);
     }
@@ -631,8 +629,6 @@ export const getWeeklyCompletionData = () => {
 // CARRYOVER REMINDER
 // ============================================
 
-const CARRYOVER_DISMISSED_KEY = 'bwg_carryover_dismissed';
-
 /**
  * Get yesterday's incomplete tasks
  * Returns array of task objects that were not completed
@@ -654,14 +650,13 @@ export const getYesterdaysIncompleteTasks = () => {
  */
 export const isCarryoverDismissed = () => {
     try {
-        const dismissed = localStorage.getItem(CARRYOVER_DISMISSED_KEY);
+        const dismissed = loadDataSync(STORES.APP_STATE, 'carryoverDismissed');
         if (!dismissed) return false;
 
-        const dismissedData = JSON.parse(dismissed);
         const todayKey = getTodayKey();
 
         // Only dismissed for today if dismissedDate matches
-        return dismissedData.dismissedDate === todayKey;
+        return dismissed.dismissedDate === todayKey;
     } catch (error) {
         return false;
     }
@@ -673,9 +668,9 @@ export const isCarryoverDismissed = () => {
 export const dismissCarryover = () => {
     try {
         const todayKey = getTodayKey();
-        localStorage.setItem(CARRYOVER_DISMISSED_KEY, JSON.stringify({
+        saveToStorage(STORES.APP_STATE, 'carryoverDismissed', {
             dismissedDate: todayKey
-        }));
+        });
     } catch (error) {
         console.error('Error dismissing carryover:', error);
     }
