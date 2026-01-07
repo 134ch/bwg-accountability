@@ -1,0 +1,177 @@
+/* Future Start Timer Styles */
+
+.future-start-timer {
+    text-align: center;
+    padding: var(--space-xl);
+    margin-bottom: var(--space-lg);
+    background: linear-gradient(135deg,
+            rgba(249, 115, 22, 0.15) 0%,
+            rgba(251, 146, 60, 0.1) 50%,
+            rgba(34, 197, 94, 0.08) 100%);
+    border: 1px solid rgba(249, 115, 22, 0.3);
+}
+
+.timer-header {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: var(--space-sm);
+    margin-bottom: var(--space-md);
+}
+
+.timer-header h2 {
+    font-size: 1.5rem;
+    font-weight: 700;
+    background: var(--color-accent-gradient);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    margin: 0;
+}
+
+.timer-icon {
+    color: var(--color-accent-primary);
+    animation: rocketPulse 2s ease-in-out infinite;
+}
+
+@keyframes rocketPulse {
+
+    0%,
+    100% {
+        transform: translateY(0) rotate(-45deg);
+    }
+
+    50% {
+        transform: translateY(-4px) rotate(-45deg);
+    }
+}
+
+.timer-message {
+    font-size: 1rem;
+    color: var(--color-text-secondary);
+    margin-bottom: var(--space-lg);
+}
+
+.timer-message strong {
+    color: var(--color-text-primary);
+}
+
+/* Countdown Display */
+.countdown-display {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: var(--space-xs);
+    margin-bottom: var(--space-lg);
+}
+
+.countdown-item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    min-width: 70px;
+    padding: var(--space-md);
+    background: var(--color-bg-secondary);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-md);
+}
+
+.countdown-value {
+    font-family: var(--font-mono);
+    font-size: 2rem;
+    font-weight: 700;
+    color: var(--color-accent-primary);
+    line-height: 1;
+    animation: countdownPulse 1s ease-in-out infinite;
+}
+
+@keyframes countdownPulse {
+
+    0%,
+    100% {
+        opacity: 1;
+    }
+
+    50% {
+        opacity: 0.8;
+    }
+}
+
+.countdown-label {
+    font-size: 0.625rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: var(--color-text-muted);
+    margin-top: var(--space-xs);
+}
+
+.countdown-separator {
+    font-family: var(--font-mono);
+    font-size: 2rem;
+    font-weight: 700;
+    color: var(--color-text-muted);
+    margin: 0 var(--space-xs);
+}
+
+/* Timer Info */
+.timer-info {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: var(--space-xs);
+    font-size: 0.75rem;
+    color: var(--color-text-muted);
+    padding: var(--space-sm) var(--space-md);
+    background: var(--color-bg-secondary);
+    border-radius: var(--radius-full);
+    max-width: fit-content;
+    margin: 0 auto;
+}
+
+/* Disabled task overlay */
+.tasks-locked .task-checkbox,
+.tasks-locked .task-timer-btn,
+.tasks-locked .compact-timer-btn {
+    pointer-events: none;
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+.tasks-locked .task-item:hover {
+    background: transparent;
+}
+
+.tasks-locked .task-checkbox:hover {
+    border-color: var(--color-border);
+}
+
+/* Responsive */
+@media (max-width: 480px) {
+    .future-start-timer {
+        padding: var(--space-lg);
+    }
+
+    .timer-header h2 {
+        font-size: 1.25rem;
+    }
+
+    .countdown-item {
+        min-width: 55px;
+        padding: var(--space-sm);
+    }
+
+    .countdown-value {
+        font-size: 1.5rem;
+    }
+
+    .countdown-separator {
+        font-size: 1.5rem;
+        margin: 0;
+    }
+
+    .timer-info {
+        flex-direction: column;
+        text-align: center;
+    }
+}

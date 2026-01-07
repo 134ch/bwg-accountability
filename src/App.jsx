@@ -17,12 +17,13 @@ import QuickLinks from './components/QuickLinks'
 import CarryoverReminder from './components/CarryoverReminder'
 import Celebration from './components/Celebration'
 import ResetDataModal from './components/ResetDataModal'
+import FutureStartTimer from './components/FutureStartTimer'
 import { initializeStorage } from './utils/storage-service'
 import {
     loadTodayTasks, saveTodayTasks, loadStreakData,
     getDaysRemainingToGoal, didMissYesterday,
     shouldShowReflection, getCurrentWeekKey, loadReflections,
-    hasStartDate, setStartDate, getCurrentDayNumber, getTodayKey,
+    hasStartDate, setStartDate, getStartDate, getCurrentDayNumber, getTodayKey,
     recordTaskTime, getWeeklyCompletionData
 } from './utils/storage'
 import './styles/App.css'
@@ -43,6 +44,8 @@ function App() {
     const [celebrationTriggered, setCelebrationTriggered] = useState(false)
     const [showResetModal, setShowResetModal] = useState(false)
     const [storageReady, setStorageReady] = useState(false)
+    const [isStartInFuture, setIsStartInFuture] = useState(false)
+    const [storedStartDate, setStoredStartDate] = useState(null)
 
     // Current phase info
     const currentPhase = getPhaseForDay(viewingDay);
@@ -60,23 +63,35 @@ function App() {
                 return;
             }
 
-            // Get current day number
+            // Get and store the start date
+            const savedStartDate = getStartDate();
+            setStoredStartDate(savedStartDate);
+
+            // Check if start date is in the future
+            const today = new Date(getTodayKey());
+            const startDateObj = new Date(savedStartDate);
+            const isFuture = startDateObj > today;
+            setIsStartInFuture(isFuture);
+
+            // Get current day number (will be 1 or less if future)
             const dayNum = getCurrentDayNumber();
             setCurrentDay(dayNum);
             setViewingDay(dayNum);
 
-            // Load streak
-            setStreakData(loadStreakData());
+            // Load streak (only if not in future)
+            if (!isFuture) {
+                setStreakData(loadStreakData());
 
-            // Check if missed yesterday
-            setShowMissedWarning(didMissYesterday());
+                // Check if missed yesterday
+                setShowMissedWarning(didMissYesterday());
 
-            // Check for Sunday reflection (with 3+ days rule)
-            if (shouldShowReflection()) {
-                const weekKey = getCurrentWeekKey();
-                const reflections = loadReflections();
-                if (!reflections[weekKey]) {
-                    setShowReflectionModal(true);
+                // Check for reflection day
+                if (shouldShowReflection()) {
+                    const weekKey = getCurrentWeekKey();
+                    const reflections = loadReflections();
+                    if (!reflections[weekKey]) {
+                        setShowReflectionModal(true);
+                    }
                 }
             }
 
@@ -163,17 +178,35 @@ function App() {
     const allCompleted = completedCount === totalCount && totalCount > 0;
     const daysRemaining = getDaysRemainingToGoal();
     const isViewingToday = viewingDay === currentDay;
+    // Tasks are only interactive if viewing today AND start date is not in the future
+    const isTasksInteractive = isViewingToday && !isStartInFuture;
 
     const handleStartDateSubmit = () => {
         setStartDate(startDateInput);
+        setStoredStartDate(startDateInput);
         setShowStartModal(false);
+
+        // Check if selected date is in the future
+        const today = new Date(getTodayKey());
+        const selectedDate = new Date(startDateInput);
+        const isFuture = selectedDate > today;
+        setIsStartInFuture(isFuture);
+
         const dayNum = getCurrentDayNumber();
         setCurrentDay(dayNum);
         setViewingDay(dayNum);
     };
 
+    // Handler when countdown timer reaches zero
+    const handleCountdownComplete = useCallback(() => {
+        setIsStartInFuture(false);
+        // Reload streak and other data
+        setStreakData(loadStreakData());
+        setShowMissedWarning(didMissYesterday());
+    }, []);
+
     const toggleTask = useCallback((taskId) => {
-        if (!isViewingToday) return; // Can't toggle past/future tasks
+        if (!isTasksInteractive) return; // Can't toggle when future or not viewing today
 
         // Vibration feedback for mobile (25ms pulse)
         if ('vibrate' in navigator) {
@@ -193,7 +226,7 @@ function App() {
             }
             return task;
         }));
-    }, [isViewingToday, activeTimerId]);
+    }, [isTasksInteractive, activeTimerId]);
 
     // Activate a timer (only one can be active at a time)
     const activateTimer = useCallback((taskId) => {
@@ -349,7 +382,15 @@ function App() {
                 {activeTab === 'tasks' ? (
                     <>
                         {/* Carryover Reminder for incomplete yesterday tasks */}
-                        <CarryoverReminder onAddTasks={handleAddCarryoverTasks} />
+                        {!isStartInFuture && <CarryoverReminder onAddTasks={handleAddCarryoverTasks} />}
+
+                        {/* Future Start Timer - shows countdown when start date is in future */}
+                        {isStartInFuture && storedStartDate && (
+                            <FutureStartTimer
+                                startDate={storedStartDate}
+                                onCountdownComplete={handleCountdownComplete}
+                            />
+                        )}
 
                         {/* Quick Links */}
                         <QuickLinks />
@@ -425,11 +466,11 @@ function App() {
                                     <span className="viewing-past-label">Viewing Only</span>
                                 )}
                             </div>
-                            <div className="task-list">
+                            <div className={`task-list ${isStartInFuture ? 'tasks-locked' : ''}`}>
                                 {tasks.map((task, index) => (
                                     <div
                                         key={task.id}
-                                        className={`task-item glassmorphism animate-slideIn ${task.completed ? 'completed' : ''} ${!isViewingToday ? 'readonly' : ''}`}
+                                        className={`task-item glassmorphism animate-slideIn ${task.completed ? 'completed' : ''} ${!isTasksInteractive ? 'readonly' : ''}`}
                                         style={{ animationDelay: `${index * 0.05}s` }}
                                     >
                                         <div
@@ -446,7 +487,7 @@ function App() {
                                                     {task.bufferedMinutes}m
                                                 </span>
                                             </div>
-                                            {isViewingToday && (
+                                            {isTasksInteractive && (
                                                 <div className="task-actions">
                                                     <CompactTimer
                                                         taskId={task.id}
@@ -454,7 +495,7 @@ function App() {
                                                         onComplete={handleTimerComplete}
                                                         onTimeUpdate={handleTimeUpdate}
                                                         onActivate={activateTimer}
-                                                        disabled={task.completed}
+                                                        disabled={task.completed || isStartInFuture}
                                                     />
                                                     {getToolUrl(task.tool) && (
                                                         <a
