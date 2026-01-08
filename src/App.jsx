@@ -342,11 +342,12 @@ function App() {
                     </div>
                     <div className="header-actions">
                         <button
-                            className="btn btn-sm btn-ghost reset-btn"
+                            className="btn btn-sm reset-btn-visible"
                             onClick={() => setShowResetModal(true)}
                             title="Reset Data"
                         >
                             <RotateCcw size={16} />
+                            <span>Reset</span>
                         </button>
                         <p className="date">
                             <Calendar size={14} />

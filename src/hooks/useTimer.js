@@ -169,12 +169,11 @@ export const useTimer = (taskId, estimatedMinutes, onComplete, onTimeUpdate) => 
                     }
                 }
 
-                // Send notification when timer expires (only once)
                 if (remaining <= 0 && !notifiedRef.current) {
                     notifiedRef.current = true;
                     sendNotification(
-                        '⏰ Timer Expired!',
-                        `Time's up for your task. You've been working for ${formatTime(elapsed)}.`,
+                        '🛑 STOP WORKING NOW!',
+                        `TIME'S UP! You've worked ${formatTime(elapsed)}. Stop and move on!`,
                         taskId
                     );
                     if (onComplete) onComplete(taskId, elapsed);

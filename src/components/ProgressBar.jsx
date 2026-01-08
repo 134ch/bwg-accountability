@@ -114,16 +114,7 @@ const ProgressBar = ({
                 ) : null}
             </div>
 
-            {/* Celebration Overlay */}
-            {celebrating && (
-                <div className="celebration-overlay">
-                    <div className="celebration-content">
-                        <PartyPopper className="celebration-icon-large" />
-                        <h2>Amazing Work! 🎉</h2>
-                        <p>You crushed every task today!</p>
-                    </div>
-                </div>
-            )}
+            {/* Note: Main celebration is handled by Celebration.jsx component */}
         </div>
     );
 };

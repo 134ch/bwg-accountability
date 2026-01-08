@@ -22,6 +22,9 @@
     padding: 2rem;
     border-radius: 20px;
     text-align: center;
+    /* Solid dark background for visibility */
+    background: rgba(20, 24, 22, 0.95);
+    border: 1px solid rgba(255, 255, 255, 0.15);
 }
 
 .reset-modal-close {
@@ -55,7 +58,7 @@
     font-size: 1.5rem;
     font-weight: 700;
     margin-bottom: 1.5rem;
-    color: var(--text-primary);
+    color: #ffffff;
 }
 
 .reset-modal-icon {
@@ -114,12 +117,12 @@
 .option-title {
     font-size: 1.1rem;
     font-weight: 600;
-    color: var(--text-primary);
+    color: #ffffff;
 }
 
 .option-desc {
     font-size: 0.85rem;
-    color: var(--text-secondary);
+    color: rgba(255, 255, 255, 0.7);
     line-height: 1.4;
 }
 
@@ -131,13 +134,13 @@
 }
 
 .reset-confirm p {
-    color: var(--text-primary);
+    color: #ffffff;
     margin: 0;
 }
 
 .reset-note {
     font-size: 0.9rem;
-    color: var(--text-secondary) !important;
+    color: rgba(255, 255, 255, 0.7) !important;
 }
 
 .reset-actions {
@@ -195,7 +198,7 @@
 
 .countdown-text {
     font-size: 0.9rem;
-    color: var(--text-secondary);
+    color: rgba(255, 255, 255, 0.7);
     margin-top: 0.5rem;
 }
 
@@ -208,7 +211,7 @@
 
 .hard-reset-warning {
     font-size: 0.9rem;
-    color: var(--text-secondary);
+    color: rgba(255, 255, 255, 0.7);
     line-height: 1.5;
 }
 
