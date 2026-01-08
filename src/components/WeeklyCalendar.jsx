@@ -16,7 +16,11 @@ const WeeklyCalendar = ({ completionData = {} }) => {
         for (let i = 0; i <= 6; i++) {
             const date = new Date();
             date.setDate(date.getDate() - i);
-            const key = date.toISOString().split('T')[0];
+            // Use local timezone instead of UTC
+            const year = date.getFullYear();
+            const month = String(date.getMonth() + 1).padStart(2, '0');
+            const day = String(date.getDate()).padStart(2, '0');
+            const key = `${year}-${month}-${day}`;
             const dayOfWeek = date.getDay();
             const dayNum = date.getDate();
             const isToday = i === 0;

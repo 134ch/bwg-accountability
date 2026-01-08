@@ -250,15 +250,21 @@ function App() {
     const handleAddCarryoverTasks = useCallback((carryoverTasks) => {
         setTasks(prev => {
             // Create new tasks from carryover, marking them as carryover
-            const newTasks = carryoverTasks.map(task => ({
-                ...task,
-                id: `carryover-${task.id}`,
-                completed: false,
-                isCarryover: true,
-                timerActive: false,
-                timeSpent: 0,
-                startedAt: null
-            }));
+            const newTasks = carryoverTasks.map(task => {
+                // Strip any existing carryover- prefix to prevent nesting
+                const baseId = task.id.replace(/^(carryover-)+/, '');
+                // Add unique timestamp to prevent ID collisions across days
+                const uniqueId = `carryover-${baseId}-${Date.now()}`;
+                return {
+                    ...task,
+                    id: uniqueId,
+                    completed: false,
+                    isCarryover: true,
+                    timerActive: false,
+                    timeSpent: 0,
+                    startedAt: null
+                };
+            });
             return [...prev, ...newTasks];
         });
     }, []);

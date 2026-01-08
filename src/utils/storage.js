@@ -15,19 +15,37 @@ import {
 const GOAL_DAYS = 60;
 
 /**
- * Get today's date as a string key (YYYY-MM-DD)
+ * Get today's date as a string key (YYYY-MM-DD) in LOCAL timezone
  */
 export const getTodayKey = () => {
-    return new Date().toISOString().split('T')[0];
+    const today = new Date();
+    const year = today.getFullYear();
+    const month = String(today.getMonth() + 1).padStart(2, '0');
+    const day = String(today.getDate()).padStart(2, '0');
+    return `${year}-${month}-${day}`;
 };
 
 /**
- * Get yesterday's date as a string key
+ * Get yesterday's date as a string key in LOCAL timezone
  */
 export const getYesterdayKey = () => {
     const yesterday = new Date();
     yesterday.setDate(yesterday.getDate() - 1);
-    return yesterday.toISOString().split('T')[0];
+    const year = yesterday.getFullYear();
+    const month = String(yesterday.getMonth() + 1).padStart(2, '0');
+    const day = String(yesterday.getDate()).padStart(2, '0');
+    return `${year}-${month}-${day}`;
+};
+
+/**
+ * Format a Date object to YYYY-MM-DD string in LOCAL timezone
+ * Use this instead of date.toISOString().split('T')[0] which uses UTC
+ */
+export const formatDateKey = (date) => {
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const day = String(date.getDate()).padStart(2, '0');
+    return `${year}-${month}-${day}`;
 };
 
 /**
@@ -381,7 +399,7 @@ export const getStats = (days = 7) => {
     for (let i = 0; i < days; i++) {
         const date = new Date();
         date.setDate(date.getDate() - i);
-        const key = date.toISOString().split('T')[0];
+        const key = formatDateKey(date);
         const dayData = data[key];
 
         if (dayData && dayData.tasks) {
@@ -564,7 +582,7 @@ export const getTimeTrackingSummary = (days = 7) => {
     for (let i = 0; i < days; i++) {
         const date = new Date();
         date.setDate(date.getDate() - i);
-        const key = date.toISOString().split('T')[0];
+        const key = formatDateKey(date);
         const dayData = data.summary[key];
 
         if (dayData) {
@@ -611,7 +629,7 @@ export const getWeeklyCompletionData = () => {
     for (let i = 6; i >= 0; i--) {
         const date = new Date();
         date.setDate(date.getDate() - i);
-        const key = date.toISOString().split('T')[0];
+        const key = formatDateKey(date);
         const dayData = data[key];
 
         if (dayData && dayData.tasks) {
