@@ -10,10 +10,10 @@ import './WeeklyCalendar.css';
 const DAYS = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
 
 const WeeklyCalendar = ({ completionData = {} }) => {
-    // Generate last 7 days
+    // Generate last 7 days (today first)
     const getLast7Days = () => {
         const days = [];
-        for (let i = 6; i >= 0; i--) {
+        for (let i = 0; i <= 6; i++) {
             const date = new Date();
             date.setDate(date.getDate() - i);
             const key = date.toISOString().split('T')[0];
@@ -82,11 +82,12 @@ const WeeklyCalendar = ({ completionData = {} }) => {
 
 /**
  * Calculate current streak from days array
+ * Note: days[0] is today, days[1] is yesterday, etc.
  */
 const calculateStreak = (days) => {
     let streak = 0;
-    // Start from yesterday (index length-2) going backwards
-    for (let i = days.length - 2; i >= 0; i--) {
+    // Start from yesterday (index 1) going forward (older days)
+    for (let i = 1; i < days.length; i++) {
         if (days[i].completed) {
             streak++;
         } else {
@@ -94,7 +95,7 @@ const calculateStreak = (days) => {
         }
     }
     // Add today if completed
-    if (days[days.length - 1].completed) {
+    if (days[0].completed) {
         streak++;
     }
     return streak;
